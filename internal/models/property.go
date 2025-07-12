@@ -120,7 +120,7 @@ func (Property) TableName() string {
 	return "properties"
 }
 
-// ToResponse converts Property to PropertyResponse
+// converts Property to PropertyResponse
 func (p *Property) ToResponse() *PropertyResponse {
 	response := &PropertyResponse{
 		ID:            p.ID,

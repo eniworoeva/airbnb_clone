@@ -19,7 +19,7 @@ func (r *userRepository) CreateUser(user *models.User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *userRepository) GetByID(id uuid.UUID) (*models.User, error) {
+func (r *userRepository) GetUserByID(id uuid.UUID) (*models.User, error) {
 	var user models.User
 	err := r.db.Where("id = ?", id).First(&user).Error
 	if err != nil {

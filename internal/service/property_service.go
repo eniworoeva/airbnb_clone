@@ -3,9 +3,11 @@ package service
 import (
 	"airbnb-clone/internal/models"
 	"airbnb-clone/internal/repository"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type PropertyService struct {
@@ -45,7 +47,6 @@ func (s *PropertyService) CreateProperty(hostID uuid.UUID, req *models.PropertyC
 		CheckOutTime:  req.CheckOutTime,
 	}
 
-	// Set default currency if not provided
 	if property.Currency == "" {
 		property.Currency = "USD"
 	}
@@ -55,11 +56,22 @@ func (s *PropertyService) CreateProperty(hostID uuid.UUID, req *models.PropertyC
 		return nil, fmt.Errorf("failed to create property: %w", err)
 	}
 
-	// Fetch the created property with host information
-	createdProperty, err := s.propertyRepo.GetByID(property.ID)
+	createdProperty, err := s.propertyRepo.GetPropertyByID(property.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch created property: %w", err)
 	}
 
 	return createdProperty.ToResponse(), nil
+}
+
+func (s *PropertyService) GetProperty(propertyID uuid.UUID) (*models.PropertyResponse, error) {
+	property, err := s.propertyRepo.GetPropertyByID(propertyID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("property not found")
+		}
+		return nil, fmt.Errorf("failed to get property: %w", err)
+	}
+
+	return property.ToResponse(), nil
 }

@@ -61,6 +61,9 @@ func setupPropertyRoutes(rg *gin.RouterGroup, propertyService *service.PropertyS
 	properties := rg.Group("/properties")
 	handler := NewPropertyHandler(propertyService)
 
+	// Public routes
+	properties.GET("/:id", handler.GetProperty)
+
 	// Protected routes
 	protected := properties.Group("/")
 	protected.Use(middleware.AuthMiddleware(userService))

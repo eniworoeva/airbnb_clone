@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type PropertyHandler struct {
@@ -39,4 +40,25 @@ func (h *PropertyHandler) CreateProperty(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, property)
+}
+
+func (h *PropertyHandler) GetProperty(c *gin.Context) {
+	propertyIDStr := c.Param("id")
+	propertyID, err := uuid.Parse(propertyIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid property ID"})
+		return
+	}
+
+	property, err := h.propertyService.GetProperty(propertyID)
+	if err != nil {
+		if err.Error() == "property not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, property)
 }

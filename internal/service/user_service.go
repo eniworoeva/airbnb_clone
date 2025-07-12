@@ -106,7 +106,7 @@ func (s *UserService) RefreshToken(refreshToken string) (*LoginResponse, error) 
 		return nil, errors.New("invalid refresh token")
 	}
 
-	user, err := s.userRepo.GetByID(claims.UserID)
+	user, err := s.userRepo.GetUserByID(claims.UserID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")

@@ -19,7 +19,7 @@ func (r *propertyRepository) Create(property *models.Property) error {
 	return r.db.Create(property).Error
 }
 
-func (r *propertyRepository) GetByID(id uuid.UUID) (*models.Property, error) {
+func (r *propertyRepository) GetPropertyByID(id uuid.UUID) (*models.Property, error) {
 	var property models.Property
 	err := r.db.Preload("Host").Where("id = ?", id).First(&property).Error
 	if err != nil {
