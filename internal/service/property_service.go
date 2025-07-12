@@ -162,3 +162,25 @@ func (s *PropertyService) UpdateProperty(propertyID, hostID uuid.UUID, req *mode
 
 	return property.ToResponse(), nil
 }
+
+func (s *PropertyService) DeleteProperty(propertyID, hostID uuid.UUID) error {
+	property, err := s.propertyRepo.GetPropertyByID(propertyID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("property not found")
+		}
+		return fmt.Errorf("failed to get property: %w", err)
+	}
+
+	// Check if user is the host of this property
+	if property.HostID != hostID {
+		return errors.New("unauthorized: you can only delete your own properties")
+	}
+
+	err = s.propertyRepo.DeleteProperty(propertyID)
+	if err != nil {
+		return fmt.Errorf("failed to delete property: %w", err)
+	}
+
+	return nil
+}

@@ -31,3 +31,7 @@ func (r *propertyRepository) GetPropertyByID(id uuid.UUID) (*models.Property, er
 func (r *propertyRepository) UpdateProperty(property *models.Property) error {
 	return r.db.Save(property).Error
 }
+
+func (r *propertyRepository) DeleteProperty(id uuid.UUID) error {
+	return r.db.Delete(&models.Property{}, id).Error
+}

@@ -99,3 +99,34 @@ func (h *PropertyHandler) UpdateProperty(c *gin.Context) {
 
 	c.JSON(http.StatusOK, property)
 }
+
+func (h *PropertyHandler) DeleteProperty(c *gin.Context) {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	propertyIDStr := c.Param("id")
+	propertyID, err := uuid.Parse(propertyIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid property ID"})
+		return
+	}
+
+	err = h.propertyService.DeleteProperty(propertyID, userID)
+	if err != nil {
+		if err.Error() == "property not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		if err.Error() == "unauthorized: you can only delete your own properties" {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Property deleted successfully"})
+}

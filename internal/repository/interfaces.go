@@ -17,6 +17,7 @@ type PropertyRepository interface {
 	Create(property *models.Property) error
 	GetPropertyByID(id uuid.UUID) (*models.Property, error) 
 	UpdateProperty(property *models.Property) error
+	DeleteProperty(id uuid.UUID) error 
 }
 
 type BookingRepository interface {

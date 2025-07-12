@@ -70,6 +70,7 @@ func setupPropertyRoutes(rg *gin.RouterGroup, propertyService *service.PropertyS
 	{
 		protected.POST("/", middleware.RequireRole("host", "admin"), handler.CreateProperty)
 		protected.PUT("/:id", handler.UpdateProperty)
+		protected.DELETE("/:id", handler.DeleteProperty)
 
 	}
 }
