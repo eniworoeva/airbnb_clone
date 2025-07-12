@@ -58,7 +58,16 @@ func setupAuthRoutes(rg *gin.RouterGroup, userService *service.UserService) {
 }
 
 func setupPropertyRoutes(rg *gin.RouterGroup, propertyService *service.PropertyService, userService *service.UserService) {
+	properties := rg.Group("/properties")
+	handler := NewPropertyHandler(propertyService)
 
+	// Protected routes
+	protected := properties.Group("/")
+	protected.Use(middleware.AuthMiddleware(userService))
+	{
+		protected.POST("/", middleware.RequireRole("host", "admin"), handler.CreateProperty)
+
+	}
 }
 
 func setupBookingRoutes(rg *gin.RouterGroup, bookingService *service.BookingService, userService *service.UserService) {

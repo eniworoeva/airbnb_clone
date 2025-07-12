@@ -14,7 +14,8 @@ type UserRepository interface {
 }
 
 type PropertyRepository interface {
-	
+	Create(property *models.Property) error
+	GetByID(id uuid.UUID) (*models.Property, error) 
 }
 
 type BookingRepository interface {
