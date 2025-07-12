@@ -5,6 +5,7 @@ import (
 	"airbnb-clone/internal/models"
 	"airbnb-clone/internal/service"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -129,4 +130,21 @@ func (h *PropertyHandler) DeleteProperty(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Property deleted successfully"})
+}
+
+func (h *PropertyHandler) ListProperties(c *gin.Context) {
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+
+	properties, err := h.propertyService.GetProperties(page, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"properties": properties,
+		"page":       page,
+		"limit":      limit,
+	})
 }

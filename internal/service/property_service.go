@@ -184,3 +184,25 @@ func (s *PropertyService) DeleteProperty(propertyID, hostID uuid.UUID) error {
 
 	return nil
 }
+
+func (s *PropertyService) GetProperties(page, limit int) ([]*models.PropertyResponse, error) {
+	if page <= 0 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 20
+	}
+	offset := (page - 1) * limit
+
+	properties, err := s.propertyRepo.ListProperties(offset, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get properties: %w", err)
+	}
+
+	responses := make([]*models.PropertyResponse, len(properties))
+	for i, property := range properties {
+		responses[i] = property.ToResponse()
+	}
+
+	return responses, nil
+}
