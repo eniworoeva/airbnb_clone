@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -48,9 +49,9 @@ type Property struct {
 	ZipCode       string         `json:"zip_code" gorm:"not null" validate:"required"`
 	Latitude      float64        `json:"latitude" gorm:"type:decimal(10,8)"`
 	Longitude     float64        `json:"longitude" gorm:"type:decimal(11,8)"`
-	Amenities     []string       `json:"amenities" gorm:"type:text[];serializer:json"`
-	Images        []string       `json:"images" gorm:"type:text[];serializer:json"`
-	Rules         []string       `json:"rules" gorm:"type:text[];serializer:json"`
+	Amenities     pq.StringArray `gorm:"type:text[]" json:"amenities"`
+	Images        pq.StringArray `gorm:"type:text[]" json:"images"`
+	Rules         pq.StringArray `gorm:"type:text[]" json:"rules"`
 	CheckInTime   time.Time      `json:"check_in_time" gorm:"type:time"`
 	CheckOutTime  time.Time      `json:"check_out_time" gorm:"type:time"`
 	CreatedAt     time.Time      `json:"created_at"`
