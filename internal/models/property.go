@@ -8,7 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// PropertyType represents the type of property
 type PropertyType string
 
 const (
@@ -20,7 +19,6 @@ const (
 	PropertyTypeStudio    PropertyType = "studio"
 )
 
-// PropertyStatus represents the status of a property
 type PropertyStatus string
 
 const (
@@ -29,7 +27,6 @@ const (
 	PropertyStatusPending  PropertyStatus = "pending"
 )
 
-// Property represents the property entity
 type Property struct {
 	ID            uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
 	HostID        uuid.UUID      `json:"host_id" gorm:"type:uuid;not null"`
@@ -85,7 +82,30 @@ type PropertyCreateRequest struct {
 	CheckOutTime  time.Time    `json:"check_out_time"`
 }
 
-// PropertyResponse represents the response body for property data
+type PropertyUpdateRequest struct {
+	Title         string         `json:"title,omitempty" validate:"omitempty,min=10,max=100"`
+	Description   string         `json:"description,omitempty" validate:"omitempty,min=50"`
+	Type          PropertyType   `json:"type,omitempty" validate:"omitempty,oneof=apartment house condo villa cabin studio"`
+	Status        PropertyStatus `json:"status,omitempty" validate:"omitempty,oneof=active inactive pending"`
+	PricePerNight float64        `json:"price_per_night,omitempty" validate:"omitempty,min=1"`
+	Currency      string         `json:"currency,omitempty"`
+	MaxGuests     int            `json:"max_guests,omitempty" validate:"omitempty,min=1,max=20"`
+	Bedrooms      int            `json:"bedrooms,omitempty" validate:"omitempty,min=0,max=20"`
+	Bathrooms     int            `json:"bathrooms,omitempty" validate:"omitempty,min=1,max=20"`
+	Address       string         `json:"address,omitempty"`
+	City          string         `json:"city,omitempty"`
+	State         string         `json:"state,omitempty"`
+	Country       string         `json:"country,omitempty"`
+	ZipCode       string         `json:"zip_code,omitempty"`
+	Latitude      float64        `json:"latitude,omitempty"`
+	Longitude     float64        `json:"longitude,omitempty"`
+	Amenities     []string       `json:"amenities,omitempty"`
+	Images        []string       `json:"images,omitempty"`
+	Rules         []string       `json:"rules,omitempty"`
+	CheckInTime   time.Time      `json:"check_in_time"`
+	CheckOutTime  time.Time      `json:"check_out_time"`
+}
+
 type PropertyResponse struct {
 	ID            uuid.UUID      `json:"id"`
 	HostID        uuid.UUID      `json:"host_id"`

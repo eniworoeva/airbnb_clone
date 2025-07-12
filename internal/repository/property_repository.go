@@ -27,3 +27,7 @@ func (r *propertyRepository) GetPropertyByID(id uuid.UUID) (*models.Property, er
 	}
 	return &property, nil
 }
+
+func (r *propertyRepository) UpdateProperty(property *models.Property) error {
+	return r.db.Save(property).Error
+}

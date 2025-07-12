@@ -75,3 +75,90 @@ func (s *PropertyService) GetProperty(propertyID uuid.UUID) (*models.PropertyRes
 
 	return property.ToResponse(), nil
 }
+
+func (s *PropertyService) UpdateProperty(propertyID, hostID uuid.UUID, req *models.PropertyUpdateRequest) (*models.PropertyResponse, error) {
+	property, err := s.propertyRepo.GetPropertyByID(propertyID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("property not found")
+		}
+		return nil, fmt.Errorf("failed to get property: %w", err)
+	}
+
+	// check if user is the host of this property
+	if property.HostID != hostID {
+		return nil, errors.New("unauthorized: you can only update your own properties")
+	}
+
+	// Update fields if provided
+	if req.Title != "" {
+		property.Title = req.Title
+	}
+	if req.Description != "" {
+		property.Description = req.Description
+	}
+	if req.Type != "" {
+		property.Type = req.Type
+	}
+	if req.Status != "" {
+		property.Status = req.Status
+	}
+	if req.PricePerNight > 0 {
+		property.PricePerNight = req.PricePerNight
+	}
+	if req.Currency != "" {
+		property.Currency = req.Currency
+	}
+	if req.MaxGuests > 0 {
+		property.MaxGuests = req.MaxGuests
+	}
+	if req.Bedrooms >= 0 {
+		property.Bedrooms = req.Bedrooms
+	}
+	if req.Bathrooms > 0 {
+		property.Bathrooms = req.Bathrooms
+	}
+	if req.Address != "" {
+		property.Address = req.Address
+	}
+	if req.City != "" {
+		property.City = req.City
+	}
+	if req.State != "" {
+		property.State = req.State
+	}
+	if req.Country != "" {
+		property.Country = req.Country
+	}
+	if req.ZipCode != "" {
+		property.ZipCode = req.ZipCode
+	}
+	if req.Latitude != 0 {
+		property.Latitude = req.Latitude
+	}
+	if req.Longitude != 0 {
+		property.Longitude = req.Longitude
+	}
+	if req.Amenities != nil {
+		property.Amenities = req.Amenities
+	}
+	if req.Images != nil {
+		property.Images = req.Images
+	}
+	if req.Rules != nil {
+		property.Rules = req.Rules
+	}
+	if !req.CheckInTime.IsZero() {
+		property.CheckInTime = req.CheckInTime
+	}
+	if !req.CheckOutTime.IsZero() {
+		property.CheckOutTime = req.CheckOutTime
+	}
+
+	err = s.propertyRepo.UpdateProperty(property)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update property: %w", err)
+	}
+
+	return property.ToResponse(), nil
+}

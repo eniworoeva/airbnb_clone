@@ -21,8 +21,8 @@ func NewRouter(services Services, cfg *config.Config) *gin.Engine {
 	router := gin.New()
 
 	// global middleware
-	router.Use(middleware.LoggingMiddleware())
 	router.Use(middleware.RequestIDMiddleware())
+	router.Use(middleware.LoggingMiddleware())
 	router.Use(middleware.CORSMiddleware())
 	router.Use(gin.Recovery())
 
@@ -69,6 +69,7 @@ func setupPropertyRoutes(rg *gin.RouterGroup, propertyService *service.PropertyS
 	protected.Use(middleware.AuthMiddleware(userService))
 	{
 		protected.POST("/", middleware.RequireRole("host", "admin"), handler.CreateProperty)
+		protected.PUT("/:id", handler.UpdateProperty)
 
 	}
 }
