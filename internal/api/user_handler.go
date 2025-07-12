@@ -5,6 +5,7 @@ import (
 
 	"airbnb-clone/internal/models"
 	"airbnb-clone/internal/service"
+	"airbnb-clone/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,10 +20,20 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 	}
 }
 
-func (h *UserHandler) Register(c *gin.Context) {
+func (h *UserHandler) Register(c *gin.Context) { 
 	var req models.UserCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if !utils.IsValidEmail(req.Email) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid email format"})
+		return
+	}
+
+	if !utils.IsValidPassword(req.Password) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "password must be at least 8 characters long"})
 		return
 	}
 
