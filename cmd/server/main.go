@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,6 +11,7 @@ import (
 	"airbnb-clone/internal/api"
 	"airbnb-clone/internal/config"
 	"airbnb-clone/internal/database"
+	"airbnb-clone/internal/logger"
 	"airbnb-clone/internal/repository"
 	"airbnb-clone/internal/service"
 
@@ -20,20 +20,22 @@ import (
 )
 
 func main() {
+	logger.InitLogger()
+
 	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
+		logger.Warn("No .env file found")
 	}
 
 	cfg := config.Load()
 
 	db, err := database.NewConnection(cfg.Database)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		logger.Fatalf("Failed to connect to database: %v", err)
 	}
 
 	// Run migrations
 	if err := database.Migrate(db); err != nil {
-		log.Fatalf("Failed to run migrations: %v", err)
+		logger.Fatalf("Failed to run migrations: %v", err)
 	}
 
 	// Initialize repositories
@@ -69,9 +71,9 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("Server starting on port %s", cfg.Server.Port)
+		logger.Infof("Server starting on port %s", cfg.Server.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Failed to start server: %v", err)
+			logger.Fatalf("Failed to start server: %v", err)
 		}
 	}()
 
@@ -79,15 +81,16 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down server...")
+	logger.Info("Shutting down server...")
 
 	// Graceful shutdown with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		logger.Fatalf("Server forced to shutdown: %v", err)
 	}
 
-	log.Println("Server exited")
+	logger.Info("Server gracefully stopped")
+	os.Exit(0)
 }

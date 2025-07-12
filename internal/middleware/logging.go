@@ -1,23 +1,33 @@
 package middleware
 
 import (
-	"fmt"
+	"airbnb-clone/internal/logger"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 func LoggingMiddleware() gin.HandlerFunc {
-	return gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-		return fmt.Sprintf("[%s] %s %s %d %s %s\n",
-			param.TimeStamp.Format(time.RFC3339),
-			param.ClientIP,
-			param.Method,
-			param.StatusCode,
-			param.Latency,
-			param.Path,
-		)
-	})
+	return func(c *gin.Context) {
+		start := time.Now()
+		c.Next()
+		latency := time.Since(start)
+
+		statusCode := c.Writer.Status()
+		clientIP := c.ClientIP()
+		method := c.Request.Method
+		path := c.Request.URL.Path
+		requestID := c.GetString("request_id")
+
+		logger.WithFields(map[string]interface{}{
+			"status":     statusCode,
+			"latency":    latency,
+			"client_ip":  clientIP,
+			"method":     method,
+			"path":       path,
+			"request_id": requestID,
+		}).Info("HTTP request")
+	}
 }
 
 // RequestIDMiddleware adds a unique request ID to each request
