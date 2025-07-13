@@ -255,3 +255,26 @@ func (s *PropertyService) GetPropertiesByHost(hostID uuid.UUID, page, limit int)
 
 	return responses, nil
 }
+
+func (s *PropertyService) CheckAvailability(propertyID uuid.UUID, checkIn, checkOut string) (bool, error) {
+	// First check if property exists and is active
+	property, err := s.propertyRepo.GetPropertyByID(propertyID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, errors.New("property not found")
+		}
+		return false, fmt.Errorf("failed to get property: %w", err)
+	}
+
+	if property.Status != models.PropertyStatusActive {
+		return false, errors.New("property is not available for booking")
+	}
+
+	// Check availability
+	available, err := s.propertyRepo.CheckAvailability(propertyID, checkIn, checkOut)
+	if err != nil {
+		return false, fmt.Errorf("failed to check availability: %w", err)
+	}
+
+	return available, nil
+}

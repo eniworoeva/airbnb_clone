@@ -148,3 +148,21 @@ func (r *propertyRepository) GetPropertiesByHostID(hostID uuid.UUID, offset, lim
 	err := r.db.Where("host_id = ?", hostID).Offset(offset).Limit(limit).Find(&properties).Error
 	return properties, err
 }
+
+func (r *propertyRepository) CheckAvailability(propertyID uuid.UUID, checkIn, checkOut string) (bool, error) {
+	var count int64
+	
+	query := `
+		SELECT COUNT(*) FROM bookings 
+		WHERE property_id = ? 
+		AND status IN ('confirmed', 'pending')
+		AND NOT (check_out <= ? OR check_in >= ?)
+	`
+	
+	err := r.db.Raw(query, propertyID, checkIn, checkOut).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	
+	return count == 0, nil
+}

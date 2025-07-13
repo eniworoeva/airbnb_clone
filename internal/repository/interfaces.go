@@ -21,6 +21,7 @@ type PropertyRepository interface {
 	ListProperties(offset, limit int) ([]*models.Property, error)
 	SearchProperties(req *models.PropertySearchRequest) ([]*models.Property, int64, error) 
 	GetPropertiesByHostID(hostID uuid.UUID, offset, limit int) ([]*models.Property, error)
+	CheckAvailability(propertyID uuid.UUID, checkIn, checkOut string) (bool, error)
 }
 
 type BookingRepository interface {

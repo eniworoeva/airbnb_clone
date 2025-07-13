@@ -238,3 +238,37 @@ func (h *PropertyHandler) GetMyProperties(c *gin.Context) {
 		"limit":      limit,
 	})
 }
+
+func (h *PropertyHandler) CheckAvailability(c *gin.Context) {
+	propertyIDStr := c.Param("id")
+	propertyID, err := uuid.Parse(propertyIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid property ID"})
+		return
+	}
+
+	checkIn := c.Query("check_in")
+	checkOut := c.Query("check_out")
+
+	if checkIn == "" || checkOut == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "check_in and check_out dates are required"})
+		return
+	}
+
+	available, err := h.propertyService.CheckAvailability(propertyID, checkIn, checkOut)
+	if err != nil {
+		if err.Error() == "property not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"property_id": propertyID,
+		"check_in":    checkIn,
+		"check_out":   checkOut,
+		"available":   available,
+	})
+}
