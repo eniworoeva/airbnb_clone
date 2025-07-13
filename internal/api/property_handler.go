@@ -215,3 +215,26 @@ func (h *PropertyHandler) SearchProperties(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+func (h *PropertyHandler) GetMyProperties(c *gin.Context) {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+
+	properties, err := h.propertyService.GetPropertiesByHost(userID, page, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"properties": properties,
+		"page":       page,
+		"limit":      limit,
+	})
+}

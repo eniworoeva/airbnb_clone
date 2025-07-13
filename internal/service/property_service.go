@@ -233,3 +233,25 @@ func (s *PropertyService) SearchProperties(req *models.PropertySearchRequest) (*
 		TotalPages: totalPages,
 	}, nil
 }
+
+func (s *PropertyService) GetPropertiesByHost(hostID uuid.UUID, page, limit int) ([]*models.PropertyResponse, error) {
+	if page <= 0 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 20
+	}
+	offset := (page - 1) * limit
+
+	properties, err := s.propertyRepo.GetPropertiesByHostID(hostID, offset, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get properties by host: %w", err)
+	}
+
+	responses := make([]*models.PropertyResponse, len(properties))
+	for i, property := range properties {
+		responses[i] = property.ToResponse()
+	}
+
+	return responses, nil
+}

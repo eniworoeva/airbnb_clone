@@ -142,3 +142,9 @@ func (r *propertyRepository) SearchProperties(req *models.PropertySearchRequest)
 
 	return properties, total, nil
 }
+
+func (r *propertyRepository) GetPropertiesByHostID(hostID uuid.UUID, offset, limit int) ([]*models.Property, error) {
+	var properties []*models.Property
+	err := r.db.Where("host_id = ?", hostID).Offset(offset).Limit(limit).Find(&properties).Error
+	return properties, err
+}
