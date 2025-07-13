@@ -64,6 +64,7 @@ func setupPropertyRoutes(rg *gin.RouterGroup, propertyService *service.PropertyS
 	// Public routes
 	properties.GET("/:id", handler.GetProperty)
 	properties.GET("/", handler.ListProperties)
+	properties.GET("/search", handler.SearchProperties)
 
 	// Protected routes
 	protected := properties.Group("/")

@@ -18,7 +18,8 @@ type PropertyRepository interface {
 	GetPropertyByID(id uuid.UUID) (*models.Property, error) 
 	UpdateProperty(property *models.Property) error
 	DeleteProperty(id uuid.UUID) error 
-	ListProperties(offset, limit int) ([]*models.Property, error) 
+	ListProperties(offset, limit int) ([]*models.Property, error)
+	SearchProperties(req *models.PropertySearchRequest) ([]*models.Property, int64, error) 
 }
 
 type BookingRepository interface {

@@ -6,6 +6,7 @@ import (
 	"airbnb-clone/internal/service"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -147,4 +148,70 @@ func (h *PropertyHandler) ListProperties(c *gin.Context) {
 		"page":       page,
 		"limit":      limit,
 	})
+}
+
+func (h *PropertyHandler) SearchProperties(c *gin.Context) {
+	var req models.PropertySearchRequest
+
+	req.City = c.Query("city")
+	req.State = c.Query("state")
+	req.Country = c.Query("country")
+	req.Type = c.Query("type")
+	req.Amenities = c.QueryArray("amenities")
+
+	if checkIn := c.Query("check_in"); checkIn != "" {
+		parsed, err := time.Parse("2006-01-02", checkIn)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid check_in format. Use YYYY-MM-DD"})
+			return
+		}
+		req.CheckIn = parsed
+	}
+
+	if checkOut := c.Query("check_out"); checkOut != "" {
+		parsed, err := time.Parse("2006-01-02", checkOut)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid check_out format. Use YYYY-MM-DD"})
+			return
+		}
+		req.CheckOut = parsed
+	}
+
+	if guests := c.Query("guests"); guests != "" {
+		num, err := strconv.Atoi(guests)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid guests value"})
+			return
+		}
+		req.Guests = num
+	}
+
+	if minPrice := c.Query("min_price"); minPrice != "" {
+		price, err := strconv.ParseFloat(minPrice, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid min_price"})
+			return
+		}
+		req.MinPrice = price
+	}
+
+	if maxPrice := c.Query("max_price"); maxPrice != "" {
+		price, err := strconv.ParseFloat(maxPrice, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid max_price"})
+			return
+		}
+		req.MaxPrice = price
+	}
+
+	req.Page, _ = strconv.Atoi(c.DefaultQuery("page", "1"))
+	req.Limit, _ = strconv.Atoi(c.DefaultQuery("limit", "20"))
+
+	response, err := h.propertyService.SearchProperties(&req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }

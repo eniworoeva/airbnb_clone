@@ -106,6 +106,21 @@ type PropertyUpdateRequest struct {
 	CheckOutTime  time.Time      `json:"check_out_time"`
 }
 
+type PropertySearchRequest struct {
+	City      string    `json:"city" form:"city"`
+	State     string    `json:"state" form:"state"`
+	Country   string    `json:"country" form:"country"`
+	CheckIn   time.Time `json:"check_in" form:"check_in"`
+	CheckOut  time.Time `json:"check_out" form:"check_out"`
+	Guests    int       `json:"guests" form:"guests"`
+	MinPrice  float64   `json:"min_price" form:"min_price"`
+	MaxPrice  float64   `json:"max_price" form:"max_price"`
+	Type      string    `json:"type" form:"type"`
+	Amenities []string  `json:"amenities" form:"amenities"`
+	Page      int       `json:"page" form:"page"`
+	Limit     int       `json:"limit" form:"limit"`
+}
+
 type PropertyResponse struct {
 	ID            uuid.UUID      `json:"id"`
 	HostID        uuid.UUID      `json:"host_id"`
@@ -175,4 +190,12 @@ func (p *Property) ToResponse() *PropertyResponse {
 	}
 
 	return response
+}
+
+type PropertySearchResponse struct {
+	Properties []*PropertyResponse `json:"properties"`
+	Total      int64               `json:"total"`
+	Page       int                 `json:"page"`
+	Limit      int                 `json:"limit"`
+	TotalPages int                 `json:"total_pages"`
 }

@@ -206,3 +206,30 @@ func (s *PropertyService) GetProperties(page, limit int) ([]*models.PropertyResp
 
 	return responses, nil
 }
+
+func (s *PropertyService) SearchProperties(req *models.PropertySearchRequest) (*models.PropertySearchResponse, error) {
+	properties, total, err := s.propertyRepo.SearchProperties(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search properties: %w", err)
+	}
+
+	// Convert to response format
+	responses := make([]*models.PropertyResponse, len(properties))
+	for i, property := range properties {
+		responses[i] = property.ToResponse()
+	}
+
+	// Calculate total pages
+	totalPages := int(total) / req.Limit
+	if int(total)%req.Limit != 0 {
+		totalPages++
+	}
+
+	return &models.PropertySearchResponse{
+		Properties: responses,
+		Total:      total,
+		Page:       req.Page,
+		Limit:      req.Limit,
+		TotalPages: totalPages,
+	}, nil
+}
