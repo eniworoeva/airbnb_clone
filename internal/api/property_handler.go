@@ -272,3 +272,24 @@ func (h *PropertyHandler) CheckAvailability(c *gin.Context) {
 		"available":   available,
 	})
 }
+
+func (h *PropertyHandler) ApproveProperty(c *gin.Context) {
+	propertyIDStr := c.Param("id")
+	propertyID, err := uuid.Parse(propertyIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid property ID"})
+		return
+	}
+
+	property, err := h.propertyService.ApproveProperty(propertyID)
+	if err != nil {
+		if err.Error() == "property not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, property)
+}

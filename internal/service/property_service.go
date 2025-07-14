@@ -278,3 +278,21 @@ func (s *PropertyService) CheckAvailability(propertyID uuid.UUID, checkIn, check
 
 	return available, nil
 }
+
+func (s *PropertyService) ApproveProperty(propertyID uuid.UUID) (*models.PropertyResponse, error) {
+	property, err := s.propertyRepo.GetPropertyByID(propertyID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("property not found")
+		}
+		return nil, fmt.Errorf("failed to get property: %w", err)
+	}
+
+	property.Status = models.PropertyStatusActive
+	err = s.propertyRepo.UpdateProperty(property)
+	if err != nil {
+		return nil, fmt.Errorf("failed to approve property: %w", err)
+	}
+
+	return property.ToResponse(), nil
+}

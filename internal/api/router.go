@@ -76,6 +76,13 @@ func setupPropertyRoutes(rg *gin.RouterGroup, propertyService *service.PropertyS
 		protected.DELETE("/:id", handler.DeleteProperty)
 		protected.GET("/my", handler.GetMyProperties)
 
+		// Admin only routes
+		admin := protected.Group("/")
+		admin.Use(middleware.RequireRole("admin"))
+		{
+			admin.POST("/:id/approve", handler.ApproveProperty)
+		}
+
 	}
 }
 
