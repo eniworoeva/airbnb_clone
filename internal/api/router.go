@@ -87,6 +87,20 @@ func setupPropertyRoutes(rg *gin.RouterGroup, propertyService *service.PropertyS
 }
 
 func setupBookingRoutes(rg *gin.RouterGroup, bookingService *service.BookingService, userService *service.UserService) {
+	bookings := rg.Group("/bookings")
+	bookings.Use(middleware.AuthMiddleware(userService))
+	handler := NewBookingHandler(bookingService)
+
+	bookings.POST("/", handler.CreateBooking)
+	bookings.GET("/:id", handler.GetBooking)
+	bookings.PUT("/:id", handler.UpdateBooking)
+	bookings.POST("/:id/cancel", handler.CancelBooking)
+	bookings.GET("/my", handler.GetMyBookings)
+	bookings.GET("/property/:property_id", handler.GetPropertyBookings)
+
+	// Admin only routes
+	admin := bookings.Group("/")
+	admin.Use(middleware.RequireRole("admin"))
 
 }
 

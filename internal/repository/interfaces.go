@@ -25,7 +25,13 @@ type PropertyRepository interface {
 }
 
 type BookingRepository interface {
-
+	GetConflictingBookings(propertyID uuid.UUID, checkIn, checkOut string) ([]*models.Booking, error)
+	CreateBooking(booking *models.Booking) error 
+	GetBookingByID(id uuid.UUID) (*models.Booking, error)
+	GetBookingByUserID(userID uuid.UUID, offset, limit int) ([]*models.Booking, error)
+	GetBookingByPropertyID(propertyID uuid.UUID, offset, limit int) ([]*models.Booking, error)
+	UpdateBooking(booking *models.Booking) error
+	DeleteBooking(id uuid.UUID) error
 }
 
 type ReviewRepository interface {
