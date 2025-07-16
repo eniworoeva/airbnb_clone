@@ -35,5 +35,13 @@ type BookingRepository interface {
 }
 
 type ReviewRepository interface {
-	
+	CreateReview(review *models.Review) error
+	GetReviewByID(id uuid.UUID) (*models.Review, error)
+	GetReviewsByPropertyID(propertyID uuid.UUID, offset, limit int) ([]*models.Review, error)
+	GetReviewsByUserID(userID uuid.UUID, offset, limit int) ([]*models.Review, error)
+	GetReviewByBookingID(bookingID uuid.UUID) (*models.Review, error)
+	UpdateReview(review *models.Review) error
+	DeleteReview(id uuid.UUID) error
+	ListReviews(offset, limit int) ([]*models.Review, error)
+	GetAverageRating(propertyID uuid.UUID) (float64, error)
 }

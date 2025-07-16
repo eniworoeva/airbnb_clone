@@ -36,7 +36,6 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 
 	booking, err := h.bookingService.CreateBooking(userID, &req)
 	if err != nil {
-		// Handle specific error cases
 		if err.Error() == "property is not available for the selected dates" ||
 			err.Error() == "property is not available for booking" ||
 			err.Error() == "check-out date must be after check-in date" ||
