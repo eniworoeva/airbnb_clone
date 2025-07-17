@@ -1,8 +1,11 @@
 package service
 
 import (
+	"airbnb-clone/internal/cache"
+	"airbnb-clone/internal/logger"
 	"airbnb-clone/internal/models"
 	"airbnb-clone/internal/repository"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -12,11 +15,13 @@ import (
 
 type PropertyService struct {
 	propertyRepo repository.PropertyRepository
+	redisClient  *cache.RedisClient
 }
 
-func NewPropertyService(propertyRepo repository.PropertyRepository) *PropertyService {
+func NewPropertyService(propertyRepo repository.PropertyRepository, redisClient *cache.RedisClient) *PropertyService {
 	return &PropertyService{
 		propertyRepo: propertyRepo,
+		redisClient:  redisClient,
 	}
 }
 
@@ -53,24 +58,52 @@ func (s *PropertyService) CreateProperty(hostID uuid.UUID, req *models.PropertyC
 
 	err := s.propertyRepo.Create(property)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create property: %w", err)
+		logger.Errorf("failed to create property: %v", err)
+		return nil, err
 	}
 
 	createdProperty, err := s.propertyRepo.GetPropertyByID(property.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch created property: %w", err)
+		logger.Errorf("failed to fetch created property: %v", err)
+		return nil, err
 	}
 
 	return createdProperty.ToResponse(), nil
 }
 
 func (s *PropertyService) GetProperty(propertyID uuid.UUID) (*models.PropertyResponse, error) {
+	cacheKey := fmt.Sprintf("property:%s", propertyID.String())
+
+	// Try Redis first
+	cached, err := s.redisClient.Get(cacheKey)
+	if err == nil {
+		var property models.Property
+		err = json.Unmarshal([]byte(cached), &property)
+		if err == nil {
+			// Cache hit — return cached property
+			return property.ToResponse(), nil
+		}
+		logger.Warnf("failed to unmarshal cached property: %v", err)
+	}
+
 	property, err := s.propertyRepo.GetPropertyByID(propertyID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("property not found")
 		}
-		return nil, fmt.Errorf("failed to get property: %w", err)
+		logger.Errorf("failed to get property: %v", err)
+		return nil, err
+	}
+
+	// Cache the property in Redis
+	propertyJSON, err := json.Marshal(property)
+	if err != nil {
+		logger.Errorf("failed to marshal property for caching: %v", err)
+	} else {
+		err = s.redisClient.Set(cacheKey, string(propertyJSON), 0) // No expiration
+		if err != nil {
+			logger.Errorf("failed to cache property: %v", err)
+		}
 	}
 
 	return property.ToResponse(), nil
@@ -82,7 +115,8 @@ func (s *PropertyService) UpdateProperty(propertyID, hostID uuid.UUID, req *mode
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("property not found")
 		}
-		return nil, fmt.Errorf("failed to get property: %w", err)
+		logger.Errorf("failed to get property: %v", err)
+		return nil, err
 	}
 
 	// check if user is the host of this property
@@ -157,7 +191,8 @@ func (s *PropertyService) UpdateProperty(propertyID, hostID uuid.UUID, req *mode
 
 	err = s.propertyRepo.UpdateProperty(property)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update property: %w", err)
+		logger.Errorf("failed to update property: %v", err)
+		return nil, err
 	}
 
 	return property.ToResponse(), nil
@@ -169,7 +204,8 @@ func (s *PropertyService) DeleteProperty(propertyID, hostID uuid.UUID) error {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("property not found")
 		}
-		return fmt.Errorf("failed to get property: %w", err)
+		logger.Errorf("failed to get property: %v", err)
+		return err
 	}
 
 	// Check if user is the host of this property
@@ -179,7 +215,8 @@ func (s *PropertyService) DeleteProperty(propertyID, hostID uuid.UUID) error {
 
 	err = s.propertyRepo.DeleteProperty(propertyID)
 	if err != nil {
-		return fmt.Errorf("failed to delete property: %w", err)
+		logger.Errorf("failed to delete property: %v", err)
+		return err
 	}
 
 	return nil
@@ -196,7 +233,8 @@ func (s *PropertyService) GetProperties(page, limit int) ([]*models.PropertyResp
 
 	properties, err := s.propertyRepo.ListProperties(offset, limit)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get properties: %w", err)
+		logger.Errorf("failed to get properties: %v", err)
+		return nil, err
 	}
 
 	responses := make([]*models.PropertyResponse, len(properties))
@@ -210,7 +248,8 @@ func (s *PropertyService) GetProperties(page, limit int) ([]*models.PropertyResp
 func (s *PropertyService) SearchProperties(req *models.PropertySearchRequest) (*models.PropertySearchResponse, error) {
 	properties, total, err := s.propertyRepo.SearchProperties(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to search properties: %w", err)
+		logger.Errorf("failed to search properties: %v", err)
+		return nil, err
 	}
 
 	// Convert to response format
@@ -245,7 +284,8 @@ func (s *PropertyService) GetPropertiesByHost(hostID uuid.UUID, page, limit int)
 
 	properties, err := s.propertyRepo.GetPropertiesByHostID(hostID, offset, limit)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get properties by host: %w", err)
+		logger.Errorf("failed to get properties by host: %v", err)
+		return nil, err
 	}
 
 	responses := make([]*models.PropertyResponse, len(properties))
@@ -263,7 +303,8 @@ func (s *PropertyService) CheckAvailability(propertyID uuid.UUID, checkIn, check
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, errors.New("property not found")
 		}
-		return false, fmt.Errorf("failed to get property: %w", err)
+		logger.Errorf("failed to get property: %v", err)
+		return false, err
 	}
 
 	if property.Status != models.PropertyStatusActive {
@@ -273,7 +314,8 @@ func (s *PropertyService) CheckAvailability(propertyID uuid.UUID, checkIn, check
 	// Check availability
 	available, err := s.propertyRepo.CheckAvailability(propertyID, checkIn, checkOut)
 	if err != nil {
-		return false, fmt.Errorf("failed to check availability: %w", err)
+		logger.Errorf("failed to check availability: %v", err)
+		return false, err
 	}
 
 	return available, nil
@@ -285,13 +327,15 @@ func (s *PropertyService) ApproveProperty(propertyID uuid.UUID) (*models.Propert
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("property not found")
 		}
-		return nil, fmt.Errorf("failed to get property: %w", err)
+		logger.Errorf("failed to get property: %v", err)
+		return nil, err
 	}
 
 	property.Status = models.PropertyStatusActive
 	err = s.propertyRepo.UpdateProperty(property)
 	if err != nil {
-		return nil, fmt.Errorf("failed to approve property: %w", err)
+		logger.Errorf("failed to approve property: %v", err)
+		return nil, err
 	}
 
 	return property.ToResponse(), nil

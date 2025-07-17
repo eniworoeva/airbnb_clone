@@ -67,7 +67,6 @@ func createIndexes(db *gorm.DB) error {
 	// property indexes
 	indexes := []string{
 		"CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_properties_location ON properties (city, state, country)",
-		"CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_properties_price ON properties (price_per_night)",
 		"CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_properties_type ON properties (type)",
 		"CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_properties_status ON properties (status)",
 		"CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_properties_host_id ON properties (host_id)",

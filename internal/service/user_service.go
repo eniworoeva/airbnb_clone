@@ -1,8 +1,8 @@
 package service
 
 import (
+	"airbnb-clone/internal/logger"
 	"errors"
-	"fmt"
 
 	"airbnb-clone/internal/config"
 	"airbnb-clone/internal/models"
@@ -36,12 +36,14 @@ func (s *UserService) Register(req *models.UserCreateRequest) (*models.UserRespo
 		return nil, errors.New("user with this email already exists")
 	}
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, fmt.Errorf("failed to check existing user: %w", err)
+		logger.Errorf("failed to check existing user: %v", err)
+		return nil, err
 	}
 
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		return nil, fmt.Errorf("failed to hash password: %w", err)
+		logger.Errorf("failed to hash password: %v", err)
+		return nil, err
 	}
 
 	user := &models.User{
@@ -56,7 +58,8 @@ func (s *UserService) Register(req *models.UserCreateRequest) (*models.UserRespo
 
 	err = s.userRepo.CreateUser(user)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create user: %w", err)
+		logger.Errorf("failed to create user: %v", err)
+		return nil, err
 	}
 
 	return user.ToResponse(), nil
@@ -68,7 +71,8 @@ func (s *UserService) Login(req *models.UserLoginRequest) (*LoginResponse, error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("invalid email or password")
 		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		logger.Errorf("failed to get user by email: %v", err)
+		return nil, err
 	}
 
 	if !user.IsActive {
@@ -81,12 +85,14 @@ func (s *UserService) Login(req *models.UserLoginRequest) (*LoginResponse, error
 
 	accessToken, err := s.jwtManager.GenerateToken(user.ID, user.Email, string(user.Role))
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate access token: %w", err)
+		logger.Errorf("failed to generate access token: %v", err)
+		return nil, err
 	}
 
 	refreshToken, err := s.jwtManager.GenerateRefreshToken(user.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
+		logger.Errorf("failed to generate refresh token: %v", err)
+		return nil, err
 	}
 
 	return &LoginResponse{
@@ -111,7 +117,8 @@ func (s *UserService) RefreshToken(refreshToken string) (*LoginResponse, error) 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
 		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		logger.Errorf("failed to get user: %v", err)
+		return nil, err
 	}
 
 	if !user.IsActive {
@@ -120,12 +127,15 @@ func (s *UserService) RefreshToken(refreshToken string) (*LoginResponse, error) 
 
 	accessToken, err := s.jwtManager.GenerateToken(user.ID, user.Email, string(user.Role))
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate access token: %w", err)
+		logger.Errorf("failed to generate access token: %v", err)
+		return nil, err
 	}
 
 	newRefreshToken, err := s.jwtManager.GenerateRefreshToken(user.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
+		logger.Errorf("failed to generate refresh token: %v", err)
+		return nil, err
+
 	}
 
 	return &LoginResponse{
