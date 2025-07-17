@@ -12,6 +12,7 @@ import (
 	"airbnb-clone/internal/config"
 	"airbnb-clone/internal/database"
 	"airbnb-clone/internal/logger"
+	"airbnb-clone/internal/cache"
 	"airbnb-clone/internal/repository"
 	"airbnb-clone/internal/service"
 
@@ -33,6 +34,13 @@ func main() {
 		logger.Fatalf("Failed to connect to database: %v", err)
 	}
 
+	// Initialize Redis client
+	redisClient, err := cache.NewRedisClient(cfg.Redis)
+	if err != nil {
+		logger.Fatalf("Failed to connect to Redis: %v", err)
+	}
+	defer redisClient.Close()
+
 	// Run migrations
 	if err := database.Migrate(db); err != nil {
 		logger.Fatalf("Failed to run migrations: %v", err)
@@ -46,7 +54,7 @@ func main() {
 
 	// Initialize services
 	userService := service.NewUserService(userRepo, cfg.JWT)
-	propertyService := service.NewPropertyService(propertyRepo)
+	propertyService := service.NewPropertyService(propertyRepo, redisClient)
 	bookingService := service.NewBookingService(bookingRepo, propertyRepo)
 	reviewService := service.NewReviewService(reviewRepo, bookingRepo)
 
@@ -56,7 +64,7 @@ func main() {
 		PropertyService: propertyService,
 		BookingService:  bookingService,
 		ReviewService:   reviewService,
-	}, cfg)
+	}, cfg, redisClient)
 
 	if cfg.Server.Environment == "production" {
 		gin.SetMode(gin.ReleaseMode)

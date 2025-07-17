@@ -7,16 +7,26 @@ import (
 
 // Config holds all configuration for the application
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
-	JWT      JWTConfig
-	Redis    RedisConfig
+	Server    ServerConfig
+	Database  DatabaseConfig
+	JWT       JWTConfig
+	Redis     RedisConfig
+	RateLimit RateLimitConfig
 }
 
 // ServerConfig holds server configuration
 type ServerConfig struct {
 	Port        string
 	Environment string
+}
+
+// RateLimitConfig holds rate limiting configuration
+type RateLimitConfig struct {
+	DefaultRequestsPerMinute int
+	AuthRequestsPerMinute    int
+	SearchRequestsPerMinute  int
+	BookingRequestsPerMinute int
+	ReviewRequestsPerMinute  int
 }
 
 // DatabaseConfig holds database configuration
@@ -48,7 +58,7 @@ type RedisConfig struct {
 func Load() *Config {
 	return &Config{
 		Server: ServerConfig{
-			Port:        getEnv("PORT", "8080"),
+			Port:        getEnv("PORT", "8081"),
 			Environment: getEnv("ENVIRONMENT", "development"),
 		},
 		Database: DatabaseConfig{
@@ -69,6 +79,13 @@ func Load() *Config {
 			Port:     getEnv("REDIS_PORT", "6379"),
 			Password: getEnv("REDIS_PASSWORD", ""),
 			DB:       getEnvAsInt("REDIS_DB", 0),
+		},
+		RateLimit: RateLimitConfig{
+			DefaultRequestsPerMinute: getEnvAsInt("RATE_LIMIT_DEFAULT", 100),
+			AuthRequestsPerMinute:    getEnvAsInt("RATE_LIMIT_AUTH", 10),
+			SearchRequestsPerMinute:  getEnvAsInt("RATE_LIMIT_SEARCH", 30),
+			BookingRequestsPerMinute: getEnvAsInt("RATE_LIMIT_BOOKING", 5),
+			ReviewRequestsPerMinute:  getEnvAsInt("RATE_LIMIT_REVIEW", 10),
 		},
 	}
 }
