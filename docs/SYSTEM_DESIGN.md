@@ -5,8 +5,9 @@
 2. [Architecture](#architecture)
 3. [Database Design](#database-design)
 4. [API Design](#api-design)
-5. [Important Questions](#important-questions)
-6. [Conclusion](#conclusion)
+5. [Challenges & Solutions](#challenges--solutions)
+6. [Important Questions](#important-questions)
+7. [Conclusion](#conclusion)
 
 
 ## Overview
@@ -122,6 +123,57 @@ GET /api/v1/properties/search?city=NYC&check_in=2024-01-01&check_out=2024-01-05&
 - Result caching
 - Pagination
 - Relevant indexes
+
+## Challenges & Solutions
+
+### Challenge 1: Complex Search Queries
+**Problem**: Property search with multiple filters and availability checking required complex SQL.
+
+**Solution**: 
+- Implemented hybrid approach using raw SQL for complex searches
+- Strategic database indexing for common query patterns
+- Query result caching for repeated searches
+
+```go
+// Solution: Dynamic query building with raw SQL
+func (r *propertyRepository) Search(req *models.PropertySearchRequest) {
+    // Build dynamic WHERE clause based on filters
+    // Use NOT EXISTS subquery for availability checking
+    // Apply proper indexes for performance
+}
+```
+
+### Challenge 2: Date Range Conflicts in Booking
+**Problem**: Ensuring no overlapping bookings for the same property.
+
+
+**Solution**:
+- Implemented conflict detection using SQL date range queries
+- Added database constraints and application-level validation
+- Used transactions for data consistency
+
+```sql
+-- Solution: Conflict detection query
+SELECT COUNT(*) FROM bookings 
+WHERE property_id = ? 
+AND status IN ('confirmed', 'pending')
+AND NOT (check_out <= ? OR check_in >= ?)
+```
+
+### Challenge 3: Scalable Authentication
+**Problem**: Session management for millions of users.
+
+**Solution**:
+- JWT-based stateless authentication
+- Token refresh mechanism
+- Redis for session caching (optional)
+
+### Challenge 4: Database Performance at Scale
+**Problem**: Query performance degradation with large datasets.
+
+**Solution**:
+- Strategic indexing on frequently queried columns
+- Connection pooling optimization
 
 
 ## Important Questions
