@@ -193,7 +193,7 @@ GET /api/v1/properties/search?city=NYC&check_in=2024-01-01&check_out=2024-01-05&
 - **Assumptions**: 10M total users
 - **Assumptions**: 10% daily active users = 1M DAU
 - **Daily Requests**: 20 requests per user per day = 20M requests/day
-- **Traffic Factor**Peak traffic factor = 3x
+- **Traffic Factor**: 3x
 - **Base TPS**: 20M ÷ (24 × 3600) = 231 TPS
 - **Peak TPS**: 231 × 3 = 694 TPS
 - **With optimization**: 5,000-10,000 TPS achievable
