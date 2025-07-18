@@ -37,12 +37,12 @@ services:
       timeout: 5s
       retries: 5
 
-  # Application
-  app:
+  # Application Instances
+  app1:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: airbnb
+    container_name: airbnb_app1
     ports:
       - "8081:8081"
     environment:
@@ -63,8 +63,46 @@ services:
         condition: service_healthy
     networks:
       - airbnb-network
-    restart: unless-stopped
-  
+
+  app2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: airbnb_app2
+    ports:
+      - "8082:8081"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=airbnb_clone
+      - DB_SSLMODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=your-super-secret-jwt-key-for-development
+      - ENVIRONMENT=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - airbnb-network
+
+  # NGINX Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: airbnb_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app1
+      - app2
+    networks:
+      - airbnb-network
 
 volumes:
   postgres_data:
