@@ -78,6 +78,7 @@ services:
       - DB_PASSWORD=password
       - DB_NAME=airbnb_clone
       - DB_SSLMODE=disable
+      - REDIS_URL=redis://redis:6379/0
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - JWT_SECRET=your-super-secret-jwt-key-for-development

@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"airbnb-clone/internal/api"
+	"airbnb-clone/internal/cache"
 	"airbnb-clone/internal/config"
 	"airbnb-clone/internal/database"
 	"airbnb-clone/internal/logger"
-	"airbnb-clone/internal/cache"
 	"airbnb-clone/internal/repository"
 	"airbnb-clone/internal/service"
 
@@ -34,8 +34,13 @@ func main() {
 		logger.Fatalf("Failed to connect to database: %v", err)
 	}
 
+	redisCfg, err := config.LoadRedisConfig()
+	if err != nil {
+		logger.Fatalf("Failed to load Redis configuration: %v", err)
+	}
+
 	// Initialize Redis client
-	redisClient, err := cache.NewRedisClient(cfg.Redis)
+	redisClient, err := cache.NewRedisClient(redisCfg)
 	if err != nil {
 		logger.Fatalf("Failed to connect to Redis: %v", err)
 	}

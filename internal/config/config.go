@@ -1,6 +1,9 @@
 package config
 
 import (
+	"airbnb-clone/internal/logger"
+
+	"net/url"
 	"os"
 	"strconv"
 )
@@ -105,4 +108,31 @@ func getEnvAsInt(name string, fallback int) int {
 		return value
 	}
 	return fallback
+}
+
+func LoadRedisConfig() (RedisConfig, error) {
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL == "" {
+		logger.Warn("REDIS_URL not set, using default Redis configuration")
+		return RedisConfig{}, nil
+	}
+
+	u, err := url.Parse(redisURL)
+	if err != nil {
+		logger.Errorf("failed to parse REDIS_URL: %v", err)
+		return RedisConfig{}, err
+	}
+
+	password, _ := u.User.Password()
+	host := u.Hostname()
+	port := u.Port()
+
+	db := 0
+
+	return RedisConfig{
+		Host:     host,
+		Port:     port,
+		Password: password,
+		DB:       db,
+	}, nil
 }
