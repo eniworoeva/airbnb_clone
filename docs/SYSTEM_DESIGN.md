@@ -249,6 +249,11 @@ AND NOT (check_out <= ? OR check_in >= ?)
 - **Base TPS**: 20M ÷ (24 × 3600) = 231 TPS
 - **Peak TPS**: 231 × 3 = 694 TPS
 - **With optimization**: 5,000-10,000 TPS achievable
+- **Tools**: 
+- **Load Testing**: k6 or Locust
+- **Prometheus**: Metrics collection
+- **Grafana**: Dashboards and visualization 
+
 
 
 

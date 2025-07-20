@@ -223,9 +223,9 @@ func (s *BookingService) UpdateBooking(bookingID, userID uuid.UUID, userRole str
 			if booking.Status != models.BookingStatusConfirmed {
 				return nil, errors.New("only confirmed bookings can be marked as completed")
 			}
-			if time.Now().Before(booking.CheckOut) {
-				return nil, errors.New("booking cannot be completed before check-out date")
-			}
+			// if time.Now().Before(booking.CheckOut) {
+			// 	return nil, errors.New("booking cannot be completed before check-out date")
+			// }
 		default:
 			return nil, errors.New("invalid booking status")
 		}
