@@ -62,6 +62,8 @@ func (s *PropertyService) CreateProperty(hostID uuid.UUID, req *models.PropertyC
 		return nil, err
 	}
 
+	// plans to cache the created property
+
 	createdProperty, err := s.propertyRepo.GetPropertyByID(property.ID)
 	if err != nil {
 		logger.Errorf("failed to fetch created property: %v", err)

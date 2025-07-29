@@ -24,7 +24,7 @@ func main() {
 	logger.InitLogger()
 
 	if err := godotenv.Load(); err != nil {
-		logger.Warn("No .env file found")
+		logger.Fatal("No .env file found")
 	}
 
 	cfg := config.Load()
