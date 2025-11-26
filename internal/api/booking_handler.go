@@ -245,4 +245,5 @@ func (h *BookingHandler) GetPropertyBookings(c *gin.Context) {
 	})
 }
 
+//new comment
 // oreva's comment
